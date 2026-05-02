@@ -1,0 +1,55 @@
+{
+  "ntfy_topic": "your-ntfy-topic-here",
+  "coins": {
+    "bitcoin": {
+      "symbol": "BTC",
+      "lower": 66486.5384,
+      "upper": 79321.1597,
+      "lower_triggered": false,
+      "upper_triggered": false,
+      "last_price": 78772,
+      "last_update": 1777758288.4882467,
+      "change_24h": 0.8732076754887417
+    },
+    "ethereum": {
+      "symbol": "ETH",
+      "lower": 2028.2989,
+      "upper": 2451.2117,
+      "lower_triggered": false,
+      "upper_triggered": false,
+      "last_price": 2327.98,
+      "last_update": 1777758288.4882467,
+      "change_24h": 1.7266188649722052
+    },
+    "solana": {
+      "symbol": "SOL",
+      "lower": 78.6779,
+      "upper": 90.3164,
+      "lower_triggered": false,
+      "upper_triggered": false,
+      "last_price": 84.62,
+      "last_update": 1777758288.4882467,
+      "change_24h": 1.1520012835843234
+    },
+    "binancecoin": {
+      "symbol": "BNB",
+      "lower": 583.2343,
+      "upper": 650.7442,
+      "lower_triggered": false,
+      "upper_triggered": false,
+      "last_price": 619.86,
+      "last_update": 1777758288.4882467,
+      "change_24h": 0.43276863875680055
+    },
+    "ripple": {
+      "symbol": "XRP",
+      "lower": 1.2818,
+      "upper": 1.501,
+      "lower_triggered": false,
+      "upper_triggered": false,
+      "last_price": 1.39,
+      "last_update": 1777758288.4882467,
+      "change_24h": 0.400959406068534
+    }
+  }
+}
