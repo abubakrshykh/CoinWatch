@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>CoinWatch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0d12;
+    --bg-2:#0f131a;
+    --card:#11161f;
+    --card-hov:#141a25;
+    --line:rgba(255,255,255,0.06);
+    --line-2:rgba(255,255,255,0.10);
+    --text:#e7ecf3;
+    --dim:#8590a3;
+    --dim-2:#5a6473;
+    --green:#2ecc71;
+    --green-bg:rgba(46,204,113,0.12);
+    --red:#ff5970;
+    --red-bg:rgba(255,89,112,0.12);
+    --amber:#ffb84d;
+    --amber-bg:rgba(255,184,77,0.12);
+    --accent:#7c8cff;
+    --accent-2:#5b6ef5;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    background:radial-gradient(1200px 600px at 50% -10%,rgba(124,140,255,0.08),transparent 60%),var(--bg);
+    color:var(--text);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    font-feature-settings:"cv11","ss01";
+  }
+  .mono{font-family:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+  .wrap{max-width:880px;margin:0 auto;padding:32px 20px 80px}
+
+  /* Header */
+  header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:28px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{
+    width:36px;height:36px;border-radius:10px;
+    background:linear-gradient(135deg,var(--accent),#a8b3ff);
+    display:grid;place-items:center;font-weight:700;color:#0a0d12;font-size:18px;
+    box-shadow:0 4px 16px rgba(124,140,255,0.35);
+  }
+  h1{font-size:18px;margin:0;font-weight:600;letter-spacing:-0.01em}
+  .brand-sub{font-size:12px;color:var(--dim);margin-top:1px}
+  .status{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim);background:var(--card);padding:6px 10px;border:1px solid var(--line);border-radius:999px}
+  .pulse{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(46,204,113,0.5);animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(46,204,113,0.5)}70%{box-shadow:0 0 0 8px rgba(46,204,113,0)}100%{box-shadow:0 0 0 0 rgba(46,204,113,0)}}
+
+  /* Cards */
+  .card{
+    background:linear-gradient(180deg,var(--card),var(--bg-2));
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:18px 20px;
+    margin-bottom:12px;
+    transition:border-color .2s,transform .2s;
+  }
+  .card:hover{border-color:var(--line-2)}
+
+  .coin-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .coin-id{display:flex;align-items:center;gap:12px}
+  .coin-dot{
+    width:36px;height:36px;border-radius:50%;
+    display:grid;place-items:center;font-weight:700;font-size:13px;
+    background:var(--card-hov);border:1px solid var(--line-2);
+    flex-shrink:0;
+  }
+  .coin-meta .sym{font-size:15px;font-weight:600;letter-spacing:0.02em}
+  .coin-meta .name{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:0.06em}
+
+  .price-block{text-align:right}
+  .price{font-size:26px;font-weight:600;letter-spacing:-0.02em}
+  .price.waiting{color:var(--dim);font-size:14px;font-weight:400}
+  .change{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:500;padding:3px 8px;border-radius:999px;margin-top:4px}
+  .change.up{color:var(--green);background:var(--green-bg)}
+  .change.down{color:var(--red);background:var(--red-bg)}
+  .change.flat{color:var(--dim);background:var(--card-hov)}
+
+  /* Range bar */
+  .range{margin-top:18px}
+  .range-track{
+    position:relative;height:10px;border-radius:6px;
+    background:linear-gradient(90deg,var(--red-bg),var(--card-hov) 30%,var(--card-hov) 70%,var(--green-bg));
+    border:1px solid var(--line);
+    overflow:visible;
+  }
+  .range-marker{
+    position:absolute;top:50%;width:14px;height:14px;border-radius:50%;
+    background:var(--text);border:3px solid var(--bg-2);
+    transform:translate(-50%,-50%);
+    box-shadow:0 2px 8px rgba(0,0,0,0.5);
+    transition:left .6s cubic-bezier(.4,0,.2,1);
+  }
+  .range-marker.alert-low{background:var(--red);box-shadow:0 0 0 3px var(--red-bg),0 2px 8px rgba(0,0,0,0.5)}
+  .range-marker.alert-high{background:var(--green);box-shadow:0 0 0 3px var(--green-bg),0 2px 8px rgba(0,0,0,0.5)}
+  .range-labels{display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--dim)}
+  .range-labels .lbl{display:flex;flex-direction:column;gap:2px}
+  .range-labels .lbl.right{align-items:flex-end}
+  .range-labels .v{color:var(--text);font-weight:500;font-size:12px}
+
+  /* Distance chips */
+  .chips{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+  .chip{font-size:11px;padding:4px 9px;border-radius:6px;background:var(--card-hov);color:var(--dim);font-weight:500;display:inline-flex;align-items:center;gap:5px}
+  .chip.warn{color:var(--amber);background:var(--amber-bg)}
+  .chip.danger{color:var(--red);background:var(--red-bg)}
+  .chip.good{color:var(--green);background:var(--green-bg)}
+
+  /* Edit row */
+  details.edit{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+  details.edit summary{cursor:pointer;font-size:12px;color:var(--dim);user-select:none;list-style:none;display:flex;align-items:center;gap:6px}
+  details.edit summary::-webkit-details-marker{display:none}
+  details.edit summary:hover{color:var(--text)}
+  details.edit summary::before{content:"›";display:inline-block;transition:transform .2s;font-size:14px}
+  details.edit[open] summary::before{transform:rotate(90deg)}
+  .edit-form{display:flex;gap:8px;margin-top:12px;align-items:flex-end;flex-wrap:wrap}
+  .field{display:flex;flex-direction:column;gap:4px}
+  .field label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:0.06em;font-weight:500}
+  input[type=number],input[type=text]{
+    background:var(--bg-2);color:var(--text);
+    border:1px solid var(--line-2);border-radius:8px;
+    padding:8px 10px;font-size:13px;font-family:'JetBrains Mono',monospace;
+    width:130px;outline:none;transition:border-color .15s;
+  }
+  input[type=text]{font-family:inherit}
+  input:focus{border-color:var(--accent)}
+  .actions{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+  button{
+    background:var(--card-hov);color:var(--text);
+    border:1px solid var(--line-2);border-radius:8px;
+    padding:8px 14px;font-size:12px;font-weight:500;cursor:pointer;
+    font-family:inherit;transition:all .15s;
+  }
+  button:hover{background:#1a2130;border-color:rgba(255,255,255,0.18)}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button.primary:hover{background:var(--accent-2);border-color:var(--accent-2)}
+  button.ghost{background:transparent}
+  button.danger{color:var(--red)}
+  button.danger:hover{background:var(--red-bg);border-color:var(--red)}
+  form{display:contents}
+  form.inline{display:inline}
+
+  /* Add coin */
+  .add-card{background:var(--card);border:1px dashed var(--line-2)}
+  .add-card .row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-top:10px}
+  .help{font-size:12px;color:var(--dim);line-height:1.5}
+  .help code{background:var(--card-hov);padding:2px 6px;border-radius:4px;font-size:11px;color:var(--text)}
+
+  /* Topic row */
+  .topic-card{display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap}
+  .topic-card .label{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:0.06em;font-weight:500;margin-bottom:6px}
+  .topic-input{display:flex;gap:8px;flex-wrap:wrap}
+
+  hr{border:none;border-top:1px solid var(--line);margin:32px 0 16px}
+  .section-title{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:0.08em;font-weight:600;margin-bottom:10px}
+
+  @media(max-width:520px){
+    .wrap{padding:20px 14px 60px}
+    .price{font-size:22px}
+    .coin-head{flex-direction:column;align-items:stretch}
+    .price-block{text-align:left}
+    input[type=number]{width:100%}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo">⚡</div>
+      <div>
+        <h1>CoinWatch</h1>
+        <div class="brand-sub">{{ cfg.coins|length }} coins · polling every 60s</div>
+      </div>
+    </div>
+    <div class="status"><span class="pulse"></span><span id="last-update">live</span></div>
+  </header>
+
+  <div class="section-title">Watchlist</div>
+
+  <div id="coins">
+  {% for cid, c in cfg.coins.items() %}
+    {% set price = c.last_price %}
+    {% set lo = c.lower %}
+    {% set hi = c.upper %}
+    {% set chg = c.change_24h %}
+    <div class="card" data-cid="{{ cid }}">
+      <div class="coin-head">
+        <div class="coin-id">
+          <div class="coin-dot">{{ c.symbol[:3] }}</div>
+          <div class="coin-meta">
+            <div class="sym">{{ c.symbol }}</div>
+            <div class="name">{{ cid }}</div>
+          </div>
+        </div>
+        <div class="price-block">
+          {% if price %}
+            <div class="price mono" data-field="price">${{ "{:,.2f}".format(price) }}</div>
+            {% if chg is not none %}
+              <span class="change {{ 'up' if chg >= 0 else 'down' }}" data-field="change">
+                {{ '▲' if chg >= 0 else '▼' }} {{ "{:.2f}".format(chg|abs) }}%
+              </span>
+            {% endif %}
+          {% else %}
+            <div class="price waiting">waiting for first poll…</div>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if price and lo and hi and hi > lo %}
+        {% set raw_pct = ((price - lo) / (hi - lo) * 100) %}
+        {% set pct = [[raw_pct, 0]|max, 100]|min %}
+        {% set to_lower = ((price - lo) / price * 100) %}
+        {% set to_upper = ((hi - price) / price * 100) %}
+        <div class="range">
+          <div class="range-track">
+            <div class="range-marker {% if price <= lo %}alert-low{% elif price >= hi %}alert-high{% endif %}" style="left:{{ pct }}%"></div>
+          </div>
+          <div class="range-labels">
+            <div class="lbl"><span>lower</span><span class="v mono">${{ "{:,.0f}".format(lo) }}</span></div>
+            <div class="lbl right"><span>upper</span><span class="v mono">${{ "{:,.0f}".format(hi) }}</span></div>
+          </div>
+        </div>
+        <div class="chips">
+          {% if price <= lo %}
+            <span class="chip danger">▼ broke lower bound</span>
+          {% elif price >= hi %}
+            <span class="chip good">▲ broke upper bound</span>
+          {% else %}
+            <span class="chip {% if to_lower < 3 %}warn{% endif %}">{{ "{:.1f}".format(to_lower) }}% above lower</span>
+            <span class="chip {% if to_upper < 3 %}warn{% endif %}">{{ "{:.1f}".format(to_upper) }}% to upper</span>
+          {% endif %}
+        </div>
+      {% elif not lo or not hi %}
+        <div class="chips" style="margin-top:14px"><span class="chip warn">no bounds set — click edit to add</span></div>
+      {% endif %}
+
+      <details class="edit">
+        <summary>edit bounds & actions</summary>
+        <form method="post" action="/update" class="edit-form">
+          <input type="hidden" name="coin_id" value="{{ cid }}">
+          <div class="field">
+            <label>lower (USD)</label>
+            <input type="number" step="any" name="lower" value="{{ lo if lo is not none else '' }}" placeholder="—">
+          </div>
+          <div class="field">
+            <label>upper (USD)</label>
+            <input type="number" step="any" name="upper" value="{{ hi if hi is not none else '' }}" placeholder="—">
+          </div>
+          <button class="primary" type="submit">save</button>
+          <div class="actions">
+            <form method="post" action="/reset/{{ cid }}" class="inline"><button type="submit" title="Reset bounds to 30-day min/max">↻ monthly</button></form>
+            <form method="post" action="/remove/{{ cid }}" class="inline" onsubmit="return confirm('Remove {{ c.symbol }}?')"><button type="submit" class="danger ghost">remove</button></form>
+          </div>
+        </form>
+      </details>
+    </div>
+  {% endfor %}
+  </div>
+
+  <hr>
+  <div class="section-title">Add coin</div>
+  <div class="card add-card">
+    <div class="help">Use the CoinGecko id (e.g. <code>cardano</code>, <code>dogecoin</code>, <code>chainlink</code>, <code>avalanche-2</code>). Bounds auto-set from 30-day min/max.</div>
+    <form method="post" action="/add">
+      <div class="row">
+        <div class="field" style="flex:1;min-width:160px"><label>coingecko id</label><input type="text" name="coin_id" placeholder="e.g. cardano" required style="width:100%"></div>
+        <div class="field"><label>symbol</label><input type="text" name="symbol" placeholder="optional" style="width:120px"></div>
+        <button class="primary" type="submit">add coin</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="section-title" style="margin-top:24px">Notifications</div>
+  <div class="card topic-card">
+    <div style="flex:1;min-width:240px">
+      <div class="label">ntfy topic</div>
+      <form method="post" action="/topic">
+        <div class="topic-input">
+          <input type="text" name="ntfy_topic" value="{{ cfg.ntfy_topic }}" style="flex:1;min-width:200px;font-family:'JetBrains Mono',monospace;font-size:12px">
+          <button type="submit">save</button>
+        </div>
+      </form>
+      <div class="help" style="margin-top:8px">Subscribe in the ntfy iOS app to topic: <code>{{ cfg.ntfy_topic }}</code></div>
+    </div>
+    <a href="/test" style="text-decoration:none"><button>send test alert</button></a>
+  </div>
+</div>
+
+<script>
+  // Live refresh every 30s without reloading page
+  async function refresh(){
+    try{
+      const r = await fetch('/api/state');
+      const data = await r.json();
+      for(const [cid, c] of Object.entries(data.coins)){
+        const card = document.querySelector(`.card[data-cid="${cid}"]`);
+        if(!card || !c.last_price) continue;
+        const priceEl = card.querySelector('[data-field="price"]');
+        if(priceEl) priceEl.textContent = '$' + c.last_price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+        const chgEl = card.querySelector('[data-field="change"]');
+        if(chgEl && c.change_24h !== null && c.change_24h !== undefined){
+          const up = c.change_24h >= 0;
+          chgEl.className = 'change ' + (up?'up':'down');
+          chgEl.textContent = (up?'▲':'▼') + ' ' + Math.abs(c.change_24h).toFixed(2) + '%';
+        }
+        // update marker position
+        const marker = card.querySelector('.range-marker');
+        if(marker && c.lower && c.upper && c.upper > c.lower){
+          const pct = Math.max(0, Math.min(100, ((c.last_price - c.lower)/(c.upper - c.lower))*100));
+          marker.style.left = pct + '%';
+          marker.classList.toggle('alert-low', c.last_price <= c.lower);
+          marker.classList.toggle('alert-high', c.last_price >= c.upper);
+        }
+      }
+      const lu = document.getElementById('last-update');
+      if(lu) lu.textContent = 'updated ' + new Date().toLocaleTimeString();
+    }catch(e){
+      const lu = document.getElementById('last-update');
+      if(lu) lu.textContent = 'offline';
+    }
+  }
+  setInterval(refresh, 30000);
+  setTimeout(refresh, 2000);
+</script>
+</body>
+</html>
