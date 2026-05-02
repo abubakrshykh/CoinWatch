@@ -1,0 +1,42 @@
+name: reset-bounds
+
+# Manually-triggered: recomputes lower/upper bounds for every coin from
+# the 30-day min/max. Run from the Actions tab when you want to re-anchor
+# triggers to the current monthly range.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tracker
+  cancel-in-progress: false
+
+jobs:
+  reset:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - run: pip install requests
+
+      - name: Reset bounds
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: python tracker.py --reset
+
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add config.json
+          if ! git diff --staged --quiet; then
+            git commit -m "tracker: reset bounds to 30d min/max"
+            git push
+          fi
