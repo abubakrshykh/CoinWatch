@@ -7,9 +7,9 @@
       "upper": 79321.1597,
       "lower_triggered": false,
       "upper_triggered": false,
-      "last_price": 78894,
-      "last_update": 1777842109.6348753,
-      "change_24h": 0.540104590120822
+      "last_price": 78731,
+      "last_update": 1777845376.2794175,
+      "change_24h": -0.0023549415922677324
     },
     "ethereum": {
       "symbol": "ETH",
@@ -17,9 +17,9 @@
       "upper": 2451.2117,
       "lower_triggered": false,
       "upper_triggered": false,
-      "last_price": 2329.06,
-      "last_update": 1777842109.6348753,
-      "change_24h": 0.7690771168250274
+      "last_price": 2321.13,
+      "last_update": 1777845376.2794175,
+      "change_24h": -0.19834436251705656
     },
     "solana": {
       "symbol": "SOL",
@@ -27,9 +27,9 @@
       "upper": 90.3164,
       "lower_triggered": false,
       "upper_triggered": false,
-      "last_price": 84.3,
-      "last_update": 1777842109.6348753,
-      "change_24h": 0.15084927197582293
+      "last_price": 84.04,
+      "last_update": 1777845376.2794175,
+      "change_24h": -0.6677114761757046
     },
     "binancecoin": {
       "symbol": "BNB",
@@ -37,9 +37,9 @@
       "upper": 650.7442,
       "lower_triggered": false,
       "upper_triggered": false,
-      "last_price": 619.61,
-      "last_update": 1777842109.6348753,
-      "change_24h": 0.17440611060488367
+      "last_price": 618.55,
+      "last_update": 1777845376.2794175,
+      "change_24h": -0.1924322574687593
     },
     "ripple": {
       "symbol": "XRP",
@@ -48,8 +48,8 @@
       "lower_triggered": false,
       "upper_triggered": false,
       "last_price": 1.39,
-      "last_update": 1777842109.6348753,
-      "change_24h": -0.008800761227228641
+      "last_update": 1777845376.2794175,
+      "change_24h": -0.2628425069513202
     }
   }
 }
