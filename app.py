@@ -18,6 +18,7 @@ def _coin(sym):
         "lower_triggered": False, "upper_triggered": False,
         "last_price": None, "last_update": None,
         "change_24h": None,
+        "position": None,
     }
 
 
@@ -250,6 +251,43 @@ def test_notify():
         priority="default",
         tags="white_check_mark",
     )
+    return redirect(url_for("index"))
+
+
+@app.route("/position/<cid>", methods=["POST"])
+def open_position(cid):
+    side = request.form.get("side", "long")
+    if side not in ("long", "short"):
+        return "side must be long or short", 400
+    try:
+        entry = float(request.form["entry_price"])
+        margin = float(request.form["margin"])
+        leverage = float(request.form["leverage"])
+    except (KeyError, ValueError):
+        return "entry_price, margin, leverage must all be numbers", 400
+    if entry <= 0 or margin <= 0 or leverage < 1:
+        return "entry/margin must be > 0 and leverage >= 1", 400
+    with _lock:
+        cfg = load_config()
+        if cid in cfg["coins"]:
+            cfg["coins"][cid]["position"] = {
+                "active": True,
+                "side": side,
+                "entry_price": entry,
+                "margin": margin,
+                "leverage": leverage,
+            }
+            save_config(cfg)
+    return redirect(url_for("index"))
+
+
+@app.route("/position/<cid>/close", methods=["POST"])
+def close_position(cid):
+    with _lock:
+        cfg = load_config()
+        if cid in cfg["coins"]:
+            cfg["coins"][cid]["position"] = None
+            save_config(cfg)
     return redirect(url_for("index"))
 
 
