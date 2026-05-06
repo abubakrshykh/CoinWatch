@@ -114,6 +114,40 @@
   .chip.danger{color:var(--red);background:var(--red-bg)}
   .chip.good{color:var(--green);background:var(--green-bg)}
 
+  /* Position banner & details */
+  .position{
+    margin-top:16px;border-radius:14px;padding:14px 16px;
+    background:linear-gradient(135deg,rgba(46,204,113,0.10),rgba(46,204,113,0.04));
+    border:1px solid rgba(46,204,113,0.20);
+    transition:background .3s,border-color .3s;
+  }
+  .position.loss{
+    background:linear-gradient(135deg,rgba(255,89,112,0.10),rgba(255,89,112,0.04));
+    border-color:rgba(255,89,112,0.20);
+  }
+  .pos-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+  .pnl-main{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;font-size:28px;font-weight:700;letter-spacing:-0.02em;line-height:1.1}
+  .pnl-main.profit{color:var(--green)}
+  .pnl-main.loss{color:var(--red)}
+  .pnl-pct{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;margin-top:2px;opacity:0.85}
+  .side-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:8px;font-size:11px;font-weight:600;letter-spacing:0.06em;font-family:'JetBrains Mono',monospace}
+  .side-badge.long{background:rgba(46,204,113,0.18);color:var(--green)}
+  .side-badge.short{background:rgba(255,89,112,0.18);color:var(--red)}
+  .pos-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:14px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+  .pos-grid .cell .lbl{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:0.06em;display:block;margin-bottom:3px}
+  .pos-grid .cell .v{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;color:var(--text);font-variant-numeric:tabular-nums}
+  .pos-grid .cell .v.warn{color:var(--amber)}
+  .pos-grid .cell .v.danger{color:var(--red)}
+  .liq-bar{height:4px;border-radius:2px;background:var(--card-hov);margin-top:8px;overflow:hidden;position:relative}
+  .liq-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--green),var(--amber) 60%,var(--red));transition:width .6s cubic-bezier(.4,0,.2,1)}
+
+  /* Position form (LONG / SHORT toggle) */
+  .side-toggle{display:flex;background:var(--bg-2);border:1px solid var(--line-2);border-radius:10px;padding:3px;margin-bottom:12px;width:fit-content}
+  .side-toggle input{display:none}
+  .side-toggle label{padding:7px 18px;font-size:12px;font-weight:600;letter-spacing:0.06em;border-radius:7px;cursor:pointer;color:var(--dim);transition:all .15s;font-family:'JetBrains Mono',monospace}
+  .side-toggle input[value=long]:checked + label{background:rgba(46,204,113,0.18);color:var(--green)}
+  .side-toggle input[value=short]:checked + label{background:rgba(255,89,112,0.18);color:var(--red)}
+
   /* Edit row */
   details.edit{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
   details.edit summary{cursor:pointer;font-size:12px;color:var(--dim);user-select:none;list-style:none;display:flex;align-items:center;gap:6px}
@@ -244,6 +278,50 @@
         <div class="chips" style="margin-top:14px"><span class="chip warn">no bounds set — click edit to add</span></div>
       {% endif %}
 
+      {# ----- Position banner (live PnL) ----- #}
+      {% set pos = c.position %}
+      {% if pos and pos.active and price %}
+        {% set qty = (pos.margin * pos.leverage) / pos.entry_price %}
+        {% if pos.side == 'long' %}
+          {% set pnl = (price - pos.entry_price) * qty %}
+          {% set liq = pos.entry_price * (1 - 1.0/pos.leverage) %}
+          {% set liq_dist_pct = ((price - liq) / price * 100) %}
+        {% else %}
+          {% set pnl = (pos.entry_price - price) * qty %}
+          {% set liq = pos.entry_price * (1 + 1.0/pos.leverage) %}
+          {% set liq_dist_pct = ((liq - price) / price * 100) %}
+        {% endif %}
+        {% set roe = (pnl / pos.margin) * 100 %}
+        {% set notional = pos.margin * pos.leverage %}
+        {% set health = [[liq_dist_pct, 0]|max, 100]|min %}
+
+        <div class="position {% if pnl < 0 %}loss{% endif %}" data-position
+             data-side="{{ pos.side }}"
+             data-entry="{{ pos.entry_price }}"
+             data-margin="{{ pos.margin }}"
+             data-leverage="{{ pos.leverage }}">
+          <div class="pos-row">
+            <div>
+              <div class="pnl-main mono {{ 'profit' if pnl >= 0 else 'loss' }}" data-field="pnl">{{ '+' if pnl >= 0 else '-' }}${{ "{:,.2f}".format(pnl|abs) }}</div>
+              <div class="pnl-pct mono {{ 'profit' if pnl >= 0 else 'loss' }}" data-field="roe" style="color:{{ 'var(--green)' if pnl >= 0 else 'var(--red)' }}">{{ '+' if roe >= 0 else '' }}{{ "{:.2f}".format(roe) }}% ROE</div>
+            </div>
+            <div style="text-align:right">
+              <span class="side-badge {{ pos.side }}">{{ pos.side|upper }} · {{ pos.leverage|int }}×</span>
+            </div>
+          </div>
+          <div class="pos-grid">
+            <div class="cell"><span class="lbl">entry</span><span class="v mono">${{ "{:,.2f}".format(pos.entry_price) }}</span></div>
+            <div class="cell"><span class="lbl">margin</span><span class="v mono">${{ "{:,.2f}".format(pos.margin) }}</span></div>
+            <div class="cell"><span class="lbl">size</span><span class="v mono">${{ "{:,.0f}".format(notional) }}</span></div>
+            <div class="cell">
+              <span class="lbl">liq price</span>
+              <span class="v mono {% if liq_dist_pct < 5 %}danger{% elif liq_dist_pct < 15 %}warn{% endif %}" data-field="liq">${{ "{:,.2f}".format(liq) }}</span>
+              <div class="liq-bar"><div class="liq-bar-fill" data-field="health" style="width:{{ 100 - health }}%"></div></div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
       <details class="edit">
         <summary>edit bounds & actions</summary>
         <form method="post" action="/update" class="edit-form">
@@ -262,6 +340,39 @@
             <form method="post" action="/remove/{{ cid }}" class="inline" onsubmit="return confirm('Remove {{ c.symbol }}?')"><button type="submit" class="danger ghost">remove</button></form>
           </div>
         </form>
+      </details>
+
+      {# ----- Position open / edit form ----- #}
+      <details class="edit">
+        <summary>{% if pos and pos.active %}edit / close position{% else %}+ open position{% endif %}</summary>
+        <form method="post" action="/position/{{ cid }}" class="edit-form" style="flex-direction:column;align-items:stretch">
+          <div class="side-toggle">
+            <input type="radio" name="side" id="long-{{ cid }}" value="long" {% if not pos or pos.side == 'long' %}checked{% endif %}>
+            <label for="long-{{ cid }}">LONG</label>
+            <input type="radio" name="side" id="short-{{ cid }}" value="short" {% if pos and pos.side == 'short' %}checked{% endif %}>
+            <label for="short-{{ cid }}">SHORT</label>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+            <div class="field">
+              <label>entry price (USD)</label>
+              <input type="number" step="any" name="entry_price" value="{{ pos.entry_price if pos else '' }}" placeholder="{{ '%.2f'|format(price) if price else '0.00' }}" required>
+            </div>
+            <div class="field">
+              <label>margin (USD)</label>
+              <input type="number" step="any" name="margin" value="{{ pos.margin if pos else '' }}" placeholder="100" required>
+            </div>
+            <div class="field">
+              <label>leverage</label>
+              <input type="number" step="1" min="1" max="125" name="leverage" value="{{ pos.leverage|int if pos else 10 }}" required>
+            </div>
+            <button class="primary" type="submit">{% if pos and pos.active %}update{% else %}open position{% endif %}</button>
+          </div>
+        </form>
+        {% if pos and pos.active %}
+        <form method="post" action="/position/{{ cid }}/close" class="inline" onsubmit="return confirm('Close {{ c.symbol }} position?')" style="margin-top:10px">
+          <button type="submit" class="danger ghost">close position</button>
+        </form>
+        {% endif %}
       </details>
     </div>
   {% endfor %}
@@ -320,6 +431,48 @@
           marker.style.left = pct + '%';
           marker.classList.toggle('alert-low', c.last_price <= c.lower);
           marker.classList.toggle('alert-high', c.last_price >= c.upper);
+        }
+
+        // live PnL
+        const banner = card.querySelector('[data-position]');
+        if(banner && c.position && c.position.active){
+          const p = c.position;
+          const qty = (p.margin * p.leverage) / p.entry_price;
+          const pnl = p.side === 'long'
+            ? (c.last_price - p.entry_price) * qty
+            : (p.entry_price - c.last_price) * qty;
+          const roe = (pnl / p.margin) * 100;
+          const liq = p.side === 'long'
+            ? p.entry_price * (1 - 1.0 / p.leverage)
+            : p.entry_price * (1 + 1.0 / p.leverage);
+          const liqDist = p.side === 'long'
+            ? ((c.last_price - liq) / c.last_price) * 100
+            : ((liq - c.last_price) / c.last_price) * 100;
+
+          const pnlEl = banner.querySelector('[data-field="pnl"]');
+          const roeEl = banner.querySelector('[data-field="roe"]');
+          const liqEl = banner.querySelector('[data-field="liq"]');
+          const healthEl = banner.querySelector('[data-field="health"]');
+
+          if(pnlEl){
+            pnlEl.textContent = (pnl >= 0 ? '+$' : '-$') + Math.abs(pnl).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+            pnlEl.classList.toggle('profit', pnl >= 0);
+            pnlEl.classList.toggle('loss', pnl < 0);
+          }
+          if(roeEl){
+            roeEl.textContent = (roe >= 0 ? '+' : '') + roe.toFixed(2) + '% ROE';
+            roeEl.style.color = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+          }
+          if(liqEl){
+            liqEl.textContent = '$' + liq.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+            liqEl.classList.toggle('danger', liqDist < 5);
+            liqEl.classList.toggle('warn', liqDist >= 5 && liqDist < 15);
+          }
+          if(healthEl){
+            const h = Math.max(0, Math.min(100, liqDist));
+            healthEl.style.width = (100 - h) + '%';
+          }
+          banner.classList.toggle('loss', pnl < 0);
         }
       }
       const lu = document.getElementById('last-update');
