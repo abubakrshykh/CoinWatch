@@ -9,6 +9,7 @@
 ![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)
 
 ---
+---
 
 ## What it does
 
